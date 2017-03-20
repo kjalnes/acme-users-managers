@@ -4,7 +4,9 @@ const User = require('./User')
 
 // define relationships here
 
-// User.belongsTo(User) ....
+User.belongsTo(User, { as: 'manager' });
+User.hasMany(User, {as: 'employees', foreignKey: 'managerId'});
+
 
 const sync = () => {
     return conn.sync({ force: true})
@@ -15,8 +17,8 @@ const seed = () => {
     .then( () => {
         Promise.all([
             User.create({name: "Moon"}),
-            User.create({name: "Leo"}),
-            User.create({name: "Nanc"})
+            User.create({name: "Leo", managerId: 1}),
+            User.create({name: "Nanc", managerId: 1})
         ])
     })
 }

@@ -6,13 +6,7 @@ const UsersList = (containerId, users) => {
     }).join('')
     ul.append(li);
     container.append(ul);
+    console.log(users)
 }
-
-
-// const User = (user, users) => {
-//     const div = $(`<div class="well"></div`);
-//     const select = $(`<select></select`);
-//     users.forEach()
-// }
 
 export default UsersList;

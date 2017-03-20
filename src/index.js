@@ -20,6 +20,10 @@ $.get('/api/users')
     });
 
 
+$.get('/api/managers')
+    .then( (users) => {
+        ManagersList('#managersList', users)
+    })
 
 const foo = new Foo({ name: 'Bar' })
 foo.sayHi()
