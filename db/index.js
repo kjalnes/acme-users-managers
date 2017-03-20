@@ -5,7 +5,7 @@ const User = require('./User')
 // define relationships here
 
 User.belongsTo(User, { as: 'manager' });
-User.hasMany(User, {as: 'employees', foreignKey: 'managerId'});
+User.hasMany(User, { as: 'employees', foreignKey: 'managerId'});
 
 
 const sync = () => {

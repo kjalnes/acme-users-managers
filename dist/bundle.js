@@ -127,17 +127,22 @@ var _jquery2 = _interopRequireDefault(_jquery);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// entry point for webpack
+var state = {
+    users: [],
+    selected: null
+};
+
 // all async ajax calls shoudl happen here
 // render data using imported UsersList and ManagersList
 
-// entry point for webpack
 console.log('hello from index.js');
 console.log('hello again from index.js');
 console.log('hello again from index.js');
 
 // has to be hooked up in the routes
 _jquery2.default.get('/api/users').then(function (users) {
-    console.log(users);
+    // console.log(users)
     (0, _UsersList2.default)('#usersList', users);
 });
 
@@ -160,8 +165,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 var ManagersList = function ManagersList(containerId, users) {
     var container = $(containerId);
-    var ul = $("<div class='panel panel-default'></div");
-    var li = users.map(function (user) {
+    container.empty();
+    var div = $("<div class='panel panel-default'></div");
+    var allUsers = users.map(function (user) {
         var employees = void 0;
         if (user.employees.length > 0) {
             employees = user.employees.map(function (employee) {
@@ -172,8 +178,8 @@ var ManagersList = function ManagersList(containerId, users) {
         }
     }).join('');
 
-    ul.append(li);
-    container.append(ul);
+    div.append(allUsers);
+    container.append(div);
 };
 
 exports.default = ManagersList;
@@ -190,13 +196,36 @@ Object.defineProperty(exports, "__esModule", {
 });
 var UsersList = function UsersList(containerId, users) {
     var container = $(containerId);
-    var ul = $("<ul></ul");
-    var li = users.map(function (user) {
-        return "<li>" + user.name + "</li>";
+    container.empty();
+    var div = $("<div class='panel panel-default'></div");
+    var allUsers = users.map(function (user) {
+        var otherUsers = void 0;
+        var button = void 0;
+        if (user.managerId) {
+            var manager = findManager(users, user.managerId);
+            otherUsers = '<option val="' + manager[0].id + '">' + manager[0].name + '</option>';
+            button = '<button class="btn btn-danger">Demote</button>';
+        } else {
+            otherUsers = '<option val=>None</option>';
+            button = '<button class="btn btn-primary">Promote</button>';
+        }
+
+        otherUsers += users.map(function (_user) {
+            if (_user.id !== user.id) {
+                return '<option val="' + _user.id + '">' + _user.name + '</option>';
+            }
+        }).join('');
+        return '<div class="panel-heading">' + user.name + '</div>\n                <div class="panel-body">\n                    <div class="form-group">\n                        ' + button + '\n                    </div>\n                    <form-group>\n                        <label>Managed by:</label>\n                        <select class="form-control">' + otherUsers + '</select>\n                    </form-group>\n                </div>\n                ';
     }).join('');
-    ul.append(li);
-    container.append(ul);
-    console.log(users);
+
+    div.append(allUsers);
+    container.append(div);
+};
+
+var findManager = function findManager(users, managerId) {
+    return users.filter(function (user) {
+        return user.id === managerId;
+    });
 };
 
 exports.default = UsersList;

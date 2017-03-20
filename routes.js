@@ -17,13 +17,7 @@ router.get('/api/users', (req, res, next ) => {
     // .then( (users) => {
     //     res.send(users)
     // })
-    db.models.User.findAll({ include: [
-        {
-            model: db.models.User,
-            as: 'employees'
-        }
-
-    ]})
+    db.models.User.findAll()
     .then( (users) => {
         console.log(users)
         res.send(users)
