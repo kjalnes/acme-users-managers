@@ -6,8 +6,3 @@ export default class Foo {
         console.log('hello ' + this.name + ' from foo!');
     }
 }
-
-// function Foo() {
-//         console.log('hello from foo!');
-// }
-
