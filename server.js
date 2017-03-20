@@ -8,21 +8,14 @@ const routes = require('./routes')
 app.use('/vendor', express.static(path.join(__dirname, 'node_modules')));
 app.use('/dist', express.static(path.join(__dirname, 'dist')));
 
-app.use('/', routes);
+// app.use('/', routes);
 
 app.get('/', (req, res, next) => {
-    // res.send('hello')
     res.sendFile(path.join(__dirname, 'index.html'))
 });
 
 //all other routes use routes.js file
 app.use('/', routes);
-
-
-    // GET /
-    // GET /api/users
-    // GET /api/managers
-    // PUT /api/users/:id
 
 
 const port = process.env.PORT || 3000;

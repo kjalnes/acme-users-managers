@@ -1,6 +1,7 @@
 const ManagersList = (containerId, users) => {
     const container = $(containerId);
-    container.empty()
+    container.empty();
+
     const div = $("<div class='panel panel-default'></div");
     const allUsers = users.map( user => {
         let employees;
@@ -12,7 +13,7 @@ const ManagersList = (containerId, users) => {
             return `<div class="panel-heading">${user.name} currently manages</div>
                     <div class="panel-body">${employees}</div>`
         }
-    }).join('')
+    }).join('');
 
     div.append(allUsers);
     container.append(div);
