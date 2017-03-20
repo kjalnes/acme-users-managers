@@ -6,6 +6,7 @@ const routes = require('./routes')
 
 
 app.use('/vendor', express.static(path.join(__dirname, 'node_modules')));
+app.use('/dist', express.static(path.join(__dirname, 'dist')));
 
 app.use('/', routes);
 
