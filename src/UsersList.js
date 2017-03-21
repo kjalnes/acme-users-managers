@@ -1,4 +1,4 @@
-import { state, demoteUser, promoteUser } from "./index"
+import { promoteOrDemoteUser } from "./index"
 
 const UsersList = (containerId, users, selected, onSelect) => {
     console.log('khsdfdjk')
@@ -41,66 +41,9 @@ const UsersList = (containerId, users, selected, onSelect) => {
 
 
     $('button').on('click', function() {
-        if(this.innerHTML === 'Demote') {
-            demoteUser(this);
-        } else {
-            promoteUser(this);
-        }
+        const id = this.id;
+        promoteOrDemoteUser(id);
     });
 }
-
-
-// const demoteUser = (user) => {
-//     const userId = user.id;
-//     $.ajax({
-//         method: 'PUT',
-//         url: `/api/users/${userId}`,
-//         contentType: 'application/json',
-//         data: JSON.stringify({ isManager: false })
-//     })
-//     .then( (user) => {
-//         state.users.forEach( _user => {
-//             if(_user.id === user.id) {
-//                 _user.isManager = false;
-//             }
-//         })
-
-//         UsersList('#usersList', state.users)
-//         ManagersList('#managersList', state.users)
-//     })
-// }
-
-// const promoteUser = (user) => {
-//     const userId = user.id;
-//     $.ajax({
-//         method: 'PUT',
-//         url: `/api/users/${userId}`,
-//         contentType: 'application/json',
-//         data: JSON.stringify({ isManager: true })
-//     })
-//     .then( (user) => {
-//         state.users.forEach( _user => {
-//             if(_user.id === user.id) {
-//                 _user.isManager = true;
-//             }
-//         })
-//         // ManagersList('#managersList', state.users)
-//         return UsersList('#usersList', state.users)
-
-//     })
-// }
-
-
-
-
-
-
-const onSelectUser = (user) => {
-    console.log(user)
-}
-
-
-
-
 
 export default UsersList;

@@ -1,24 +1,22 @@
-const ManagersList = (containerId, users) => {
+const ManagersList = (containerId, managersAndEmp) => {
     const container = $(containerId);
     container.empty();
-
     const div = $("<div class='panel panel-default'></div");
-    const allUsers = users.map( user => {
-        let employees;
 
-        if(user.employees.length > 0) {
-            employees = user.employees.map( (employee) => {
-                return employee.name
-            }).join(', ')
-
-            return `<div class="panel-heading">${user.name} currently manages</div>
-                    <div class="panel-body">${employees}</div>`
+    const allManagers = managersAndEmp.map( manager => {
+        let employees = "";
+        if (manager.employees.length) {
+            manager.employees.forEach( (employee) => {
+                employees+= employee.name
+            })
         }
+        return `<div class="panel-heading">${manager.name} currently manages</div>
+                <div class="panel-body">${employees}</div>`
+
     }).join('');
 
-    div.append(allUsers);
+    div.append(allManagers);
     container.append(div);
 }
-
 
 export default ManagersList;

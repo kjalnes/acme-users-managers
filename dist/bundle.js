@@ -76,24 +76,22 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-var ManagersList = function ManagersList(containerId, users) {
+var ManagersList = function ManagersList(containerId, managersAndEmp) {
     var container = $(containerId);
     container.empty();
-
     var div = $("<div class='panel panel-default'></div");
-    var allUsers = users.map(function (user) {
-        var employees = void 0;
 
-        if (user.employees.length > 0) {
-            employees = user.employees.map(function (employee) {
-                return employee.name;
-            }).join(', ');
-
-            return '<div class="panel-heading">' + user.name + ' currently manages</div>\n                    <div class="panel-body">' + employees + '</div>';
+    var allManagers = managersAndEmp.map(function (manager) {
+        var employees = "";
+        if (manager.employees.length) {
+            manager.employees.forEach(function (employee) {
+                employees += employee.name;
+            });
         }
+        return "<div class=\"panel-heading\">" + manager.name + " currently manages</div>\n                <div class=\"panel-body\">" + employees + "</div>";
     }).join('');
 
-    div.append(allUsers);
+    div.append(allManagers);
     container.append(div);
 };
 
@@ -143,57 +141,9 @@ var UsersList = function UsersList(containerId, users, selected, onSelect) {
     container.append(div);
 
     $('button').on('click', function () {
-        if (this.innerHTML === 'Demote') {
-            (0, _index.demoteUser)(this);
-        } else {
-            (0, _index.promoteUser)(this);
-        }
+        var id = this.id;
+        (0, _index.promoteOrDemoteUser)(id);
     });
-};
-
-// const demoteUser = (user) => {
-//     const userId = user.id;
-//     $.ajax({
-//         method: 'PUT',
-//         url: `/api/users/${userId}`,
-//         contentType: 'application/json',
-//         data: JSON.stringify({ isManager: false })
-//     })
-//     .then( (user) => {
-//         state.users.forEach( _user => {
-//             if(_user.id === user.id) {
-//                 _user.isManager = false;
-//             }
-//         })
-
-//         UsersList('#usersList', state.users)
-//         ManagersList('#managersList', state.users)
-//     })
-// }
-
-// const promoteUser = (user) => {
-//     const userId = user.id;
-//     $.ajax({
-//         method: 'PUT',
-//         url: `/api/users/${userId}`,
-//         contentType: 'application/json',
-//         data: JSON.stringify({ isManager: true })
-//     })
-//     .then( (user) => {
-//         state.users.forEach( _user => {
-//             if(_user.id === user.id) {
-//                 _user.isManager = true;
-//             }
-//         })
-//         // ManagersList('#managersList', state.users)
-//         return UsersList('#usersList', state.users)
-
-//     })
-// }
-
-
-var onSelectUser = function onSelectUser(user) {
-    console.log(user);
 };
 
 exports.default = UsersList;
@@ -244,7 +194,7 @@ exports.default = Foo;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.promoteUser = exports.demoteUser = exports.state = undefined;
+exports.promoteOrDemoteUser = promoteOrDemoteUser;
 
 var _foo = __webpack_require__(2);
 
@@ -264,74 +214,47 @@ var _ManagersList2 = _interopRequireDefault(_ManagersList);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// USE STATE !!!!!!!!!!!!!!!!!!!!!!!!!
+// import * as API from "./api";
+
 // entry point for webpack
-var state = exports.state = {
+var state = {
     users: [],
+    managers: [],
     selected: null
 };
 
-// all async ajax calls shoudl happen here
-// render data using imported UsersList and ManagersList
+function getData() {
+    Promise.all([getUsers(), getManagers()]).then(function (result) {
+        state.users = result[0];
+        state.managers = result[1];
+        render();
+    });
+}
+getData();
 
+function getUsers() {
+    return _jquery2.default.get('/api/users');
+}
 
-// has to be hooked up in the routes
+function getManagers() {
+    return _jquery2.default.get('/api/managers');
+}
 
-_jquery2.default.get('/api/users').then(function (users) {
-    console.log("users", users);
-    state.users = users;
+// export to make available in UsersList.js
+function promoteOrDemoteUser(id) {
+    _jquery2.default.ajax({
+        method: 'PUT',
+        url: '/api/users/' + id,
+        contentType: 'application/json'
+    }).then(function () {
+        getData();
+    });
+}
+
+function render() {
     (0, _UsersList2.default)('#usersList', state.users);
-});
-
-_jquery2.default.get('/api/managers').then(function (users) {
-    state.users = users;
-    (0, _ManagersList2.default)('#managersList', state.users);
-});
-
-var demoteUser = exports.demoteUser = function demoteUser(user) {
-    var userId = user.id;
-    _jquery2.default.ajax({
-        method: 'PUT',
-        url: '/api/users/' + userId,
-        contentType: 'application/json',
-        data: JSON.stringify({
-            isManager: false,
-            employees: []
-        })
-    }).then(function (user) {
-        state.users.forEach(function (_user) {
-            if (_user.id === user.id) {
-                _user.isManager = false;
-            }
-        });
-
-        (0, _UsersList2.default)('#usersList', state.users);
-        (0, _ManagersList2.default)('#managersList', state.users);
-    });
-};
-
-var promoteUser = exports.promoteUser = function promoteUser(user) {
-    var userId = user.id;
-    _jquery2.default.ajax({
-        method: 'PUT',
-        url: '/api/users/' + userId,
-        contentType: 'application/json',
-        data: JSON.stringify({
-            isManager: true,
-            employees: []
-        })
-    }).then(function (user) {
-        state.users.forEach(function (_user) {
-            if (_user.id === user.id) {
-                _user.isManager = true;
-            }
-        });
-        (0, _ManagersList2.default)('#managersList', state.users);
-        (0, _UsersList2.default)('#usersList', state.users);
-    });
-};
-
-//  ALL AJAX CALLS HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    (0, _ManagersList2.default)('#managersList', state.managers);
+}
 
 /***/ }),
 /* 4 */

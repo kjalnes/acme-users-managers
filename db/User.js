@@ -6,6 +6,37 @@ const User = _conn.define('user', {
         type:_conn.Sequelize.BOOLEAN(),
         defaultValue: false
     }
+}, {
+    classMethods: {
+        getUsers: function() {
+            return this.findAll({
+                order: [
+                    ['name', 'DESC']
+                ]
+            })
+        },
+        getManagers: function() {
+            return this.findAll({
+                order: [
+                    ['name', 'DESC']
+                ],
+                where: {
+                    isManager: true
+                }
+            })
+        },
+        getManagersAndEmployees: function() {
+            return this.findAll({
+               order: [
+                    ['name', 'DESC']
+                ],
+                where: {
+                    isManager: true
+                },
+                include: { model: this, as: 'employees' }
+            });
+        }
+    }
 });
 
 module.exports = User;

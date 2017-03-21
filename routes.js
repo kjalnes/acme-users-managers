@@ -4,50 +4,46 @@ const db = require('./db')
 
 
 router.get('/api/users', (req, res, next ) => {
-    // async call to get users from db
-    db.models.User.findAll()
+    db.models.User.getUsers()
     .then( (users) => {
         res.send(users)
     })
-
 })
-
 
 router.get('/api/managers', (req, res, next ) => {
-    // async call to get managers from db
-    db.models.User.findAll({ include: [
-        {
-            model: db.models.User,
-            as: 'employees'
-        }
-    ]})
-    .then( (users) => {
-        res.send(users)
+    db.models.User.getManagersAndEmployees()
+    .then( (managersAndEmpl) => {
+        res.send(managersAndEmpl)
     })
-
 })
 
+
+// promote, demote, add user to manager, remove user from manager, change user's manager
 router.put('/api/users/:id', (req, res, next ) => {
-    // async update to remove or add user as manager
+    const id = req.params.id;
+    // 1. find the user and demote or promote
+    // 2. if demote find all of users employees and set managerId to null
     db.models.User.findOne({
         where: {
             id: req.params.id
         }
     })
-    .then( (user) =>{
-        user.update({
-            isManager: req.body.isManager,
-            employees: req.body.employees
-        })
-        .then( (user) => {
-            res.send(user)
+    .then(user => {
+        const isManager = user.isManager; // true or false
+        return user.update({
+            isManager: !isManager
         })
     })
+    .then( (user) => {
+        // if user was demoted:
+        if(!user.isManager)  {
+            db.models.User.update(
+                { managerId: null },
+                { where: { managerId: id }}
+            )
+        }
+    })
+    .then( () => res.sendStatus(201))
 });
-
-// GET /api/users
-// GET /api/managers
-// PUT /api/users/:id
-
 
 module.exports = router;

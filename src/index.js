@@ -3,84 +3,49 @@ import Foo from './foo';
 import $ from 'jquery';
 import UsersList from './UsersList';
 import ManagersList from './ManagersList';
+// import * as API from "./api";
 
-// USE STATE !!!!!!!!!!!!!!!!!!!!!!!!!
-export const state = {
+const state = {
     users: [],
+    managers: [],
     selected: null
 };
 
-// all async ajax calls shoudl happen here
-// render data using imported UsersList and ManagersList
-
-
-// has to be hooked up in the routes
-
-$.get('/api/users')
-    .then( (users) => {
-        console.log("users", users)
-        state.users  = users;
-        UsersList('#usersList', state.users);
+function getData() {
+    Promise.all([
+        getUsers(),
+        getManagers()
+    ])
+    .then(result => {
+        state.users = result[ 0 ];
+        state.managers = result[ 1 ];
+        render();
     });
+}
+getData();
 
-$.get('/api/managers')
-    .then( (users) => {
-        state.users = users;
-        ManagersList('#managersList', state.users)
-    });
-
-
-export const demoteUser = (user) => {
-    const userId = user.id;
-    $.ajax({
-        method: 'PUT',
-        url: `/api/users/${userId}`,
-        contentType: 'application/json',
-        data: JSON.stringify({
-            isManager: false,
-            employees: []
-        })
-    })
-    .then( (user) => {
-        state.users.forEach( _user => {
-            if(_user.id === user.id) {
-                _user.isManager = false;
-            }
-        })
-
-        UsersList('#usersList', state.users)
-        ManagersList('#managersList', state.users)
-    })
+function getUsers() {
+    return $.get('/api/users');
 }
 
-export const promoteUser = (user) => {
-    const userId = user.id;
+function getManagers() {
+    return $.get('/api/managers');
+}
+
+// export to make available in UsersList.js
+export function promoteOrDemoteUser(id) {
     $.ajax({
         method: 'PUT',
-        url: `/api/users/${userId}`,
-        contentType: 'application/json',
-        data: JSON.stringify({
-            isManager: true,
-            employees: []
-        })
+        url: `/api/users/${id}`,
+        contentType: 'application/json'
     })
-    .then( (user) => {
-        state.users.forEach( _user => {
-            if(_user.id === user.id) {
-                _user.isManager = true;
-            }
-        })
-        ManagersList('#managersList', state.users)
-        UsersList('#usersList', state.users)
-
-    })
+    .then( () => {
+        getData();
+    });
 }
 
 
-
-
-
-
-
-
-//  ALL AJAX CALLS HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+function render() {
+    UsersList('#usersList', state.users);
+    ManagersList('#managersList', state.managers);
+}
