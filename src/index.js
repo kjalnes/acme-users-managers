@@ -1,9 +1,7 @@
 // entry point for webpack
-import Foo from './foo';
 import $ from 'jquery';
 import UsersList from './UsersList';
 import ManagersList from './ManagersList';
-// import * as API from "./api";
 
 const state = {
     users: [],
@@ -32,18 +30,31 @@ function getManagers() {
     return $.get('/api/managers');
 }
 
-// export to make available in UsersList.js
-export function promoteOrDemoteUser(id) {
+export function changeManager(id, managerId) {
+    const newManagerId = managerId ? managerId : 'none'
     $.ajax({
         method: 'PUT',
         url: `/api/users/${id}`,
-        contentType: 'application/json'
+        data: JSON.stringify({ managerId: newManagerId}),
+        contentType: "application/json",
     })
     .then( () => {
         getData();
     });
 }
 
+// export to make available in UsersList.js
+export function promoteOrDemoteUser(id) {
+    $.ajax({
+        method: 'PUT',
+        url: `/api/users/${id}`,
+        contentType: 'application/json',
+        data: JSON.stringify({ promoteOrDemote: true })
+    })
+    .then( () => {
+        getData();
+    });
+}
 
 function render() {
     UsersList('#usersList', state.users);

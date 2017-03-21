@@ -7,7 +7,7 @@ const ManagersList = (containerId, managersAndEmp) => {
         let employees = "";
         if (manager.employees.length) {
             manager.employees.forEach( (employee) => {
-                employees+= employee.name
+                employees+= `${employee.name}<br>`
             })
         }
         return `<div class="panel-heading">${manager.name} currently manages</div>

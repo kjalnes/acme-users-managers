@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -85,7 +85,7 @@ var ManagersList = function ManagersList(containerId, managersAndEmp) {
         var employees = "";
         if (manager.employees.length) {
             manager.employees.forEach(function (employee) {
-                employees += employee.name;
+                employees += employee.name + "<br>";
             });
         }
         return "<div class=\"panel-heading\">" + manager.name + " currently manages</div>\n                <div class=\"panel-body\">" + employees + "</div>";
@@ -108,9 +108,9 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _index = __webpack_require__(3);
+var _index = __webpack_require__(2);
 
-var UsersList = function UsersList(containerId, users, selected, onSelect) {
+var UsersList = function UsersList(containerId, users) {
     console.log('khsdfdjk');
     var container = $(containerId);
     container.empty();
@@ -127,14 +127,16 @@ var UsersList = function UsersList(containerId, users, selected, onSelect) {
         });
 
         otherUsers.forEach(function (otherUser) {
-            var option = "<option val=\"" + otherUser.id + "\">" + otherUser.name + "</option>";
-            if (otherUser.id === user.managerId) {
-                option = "<option selected val=\"" + otherUser.id + "\">" + otherUser.name + "</option>";
+            if (otherUser.isManager) {
+                var option = "<option val=\"" + otherUser.id + "\">" + otherUser.name + "</option>";
+                if (otherUser.id === user.managerId) {
+                    option = "<option selected val=\"" + otherUser.id + "\">" + otherUser.name + "</option>";
+                }
+                options.push(option);
             }
-            options.push(option);
         });
 
-        return "<div class=\"panel-heading\">" + user.name + "</div>\n                <div class=\"panel-body\">\n                    <div class=\"form-group\">\n                        <button id=\"" + user.id + "\" class=\"btn " + btnClass + "\">" + btnText + "</button>\n                    </div>\n                    <form-group>\n                        <label>Managed by:</label>\n                        <select class=\"form-control otherUsers\">\n                            " + options + "\n                        </select>\n                    </form-group>\n                </div>";
+        return "<div class=\"panel-heading\">" + user.name + "</div>\n                <div class=\"panel-body\">\n                    <div class=\"form-group\">\n                        <button id=\"" + user.id + "\" class=\"btn " + btnClass + "\">" + btnText + "</button>\n                    </div>\n                    <form-group>\n                        <label>Managed by:</label>\n                        <select id=\"select-" + user.id + "\" class=\"form-control otherUsers\">\n                            " + options + "\n                        </select>\n                    </form-group>\n                </div>";
     }).join('');
 
     div.append(allUsers);
@@ -143,6 +145,16 @@ var UsersList = function UsersList(containerId, users, selected, onSelect) {
     $('button').on('click', function () {
         var id = this.id;
         (0, _index.promoteOrDemoteUser)(id);
+    });
+
+    $('select').on('change', function () {
+        var userId = this.id.slice(7);
+        var newManagerId = $(this).find(':selected').attr('val');
+
+        (0, _index.changeManager)(userId, newManagerId);
+        // change user's manager
+        // change old managers data
+        // change new managers data
     });
 };
 
@@ -158,49 +170,10 @@ exports.default = UsersList;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Foo = function () {
-    function Foo(_ref) {
-        var name = _ref.name;
-
-        _classCallCheck(this, Foo);
-
-        this.name = name;
-    }
-
-    _createClass(Foo, [{
-        key: 'sayHi',
-        value: function sayHi() {
-            console.log('hello ' + this.name + ' from foo!');
-        }
-    }]);
-
-    return Foo;
-}();
-
-exports.default = Foo;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
+exports.changeManager = changeManager;
 exports.promoteOrDemoteUser = promoteOrDemoteUser;
 
-var _foo = __webpack_require__(2);
-
-var _foo2 = _interopRequireDefault(_foo);
-
-var _jquery = __webpack_require__(4);
+var _jquery = __webpack_require__(3);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -214,14 +187,12 @@ var _ManagersList2 = _interopRequireDefault(_ManagersList);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// import * as API from "./api";
-
-// entry point for webpack
 var state = {
     users: [],
     managers: [],
     selected: null
-};
+}; // entry point for webpack
+
 
 function getData() {
     Promise.all([getUsers(), getManagers()]).then(function (result) {
@@ -240,12 +211,25 @@ function getManagers() {
     return _jquery2.default.get('/api/managers');
 }
 
+function changeManager(id, managerId) {
+    var newManagerId = managerId ? managerId : 'none';
+    _jquery2.default.ajax({
+        method: 'PUT',
+        url: '/api/users/' + id,
+        data: JSON.stringify({ managerId: newManagerId }),
+        contentType: "application/json"
+    }).then(function () {
+        getData();
+    });
+}
+
 // export to make available in UsersList.js
 function promoteOrDemoteUser(id) {
     _jquery2.default.ajax({
         method: 'PUT',
         url: '/api/users/' + id,
-        contentType: 'application/json'
+        contentType: 'application/json',
+        data: JSON.stringify({ promoteOrDemote: true })
     }).then(function () {
         getData();
     });
@@ -257,7 +241,7 @@ function render() {
 }
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!

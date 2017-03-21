@@ -1,6 +1,6 @@
-import { promoteOrDemoteUser } from "./index"
+import { promoteOrDemoteUser, changeManager } from "./index"
 
-const UsersList = (containerId, users, selected, onSelect) => {
+const UsersList = (containerId, users) => {
     console.log('khsdfdjk')
     const container = $(containerId);
     container.empty();
@@ -15,11 +15,13 @@ const UsersList = (containerId, users, selected, onSelect) => {
         let otherUsers = users.filter(_user => user.id !== _user.id);
 
         otherUsers.forEach(otherUser => {
-            let option = `<option val="${otherUser.id}">${otherUser.name}</option>`;
-            if (otherUser.id === user.managerId) {
-                option = `<option selected val="${otherUser.id}">${otherUser.name}</option>`;
+            if(otherUser.isManager) {
+                let option = `<option val="${otherUser.id}">${otherUser.name}</option>`;
+                if (otherUser.id === user.managerId) {
+                    option = `<option selected val="${otherUser.id}">${otherUser.name}</option>`;
+                }
+                options.push(option);
             }
-            options.push(option);
         });
 
         return `<div class="panel-heading">${user.name}</div>
@@ -29,7 +31,7 @@ const UsersList = (containerId, users, selected, onSelect) => {
                     </div>
                     <form-group>
                         <label>Managed by:</label>
-                        <select class="form-control otherUsers">
+                        <select id="select-${user.id}" class="form-control otherUsers">
                             ${options}
                         </select>
                     </form-group>
@@ -39,11 +41,21 @@ const UsersList = (containerId, users, selected, onSelect) => {
     div.append(allUsers);
     container.append(div);
 
-
     $('button').on('click', function() {
         const id = this.id;
         promoteOrDemoteUser(id);
     });
+
+    $('select').on('change', function() {
+        const userId = this.id.slice(7);
+        const newManagerId = $(this).find(':selected').attr('val');
+
+        changeManager(userId, newManagerId)
+        // change user's manager
+        // change old managers data
+        // change new managers data
+    });
+
 }
 
 export default UsersList;
