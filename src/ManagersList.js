@@ -5,6 +5,7 @@ const ManagersList = (containerId, users) => {
     const div = $("<div class='panel panel-default'></div");
     const allUsers = users.map( user => {
         let employees;
+
         if(user.employees.length > 0) {
             employees = user.employees.map( (employee) => {
                 return employee.name

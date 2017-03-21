@@ -27,15 +27,27 @@ router.get('/api/managers', (req, res, next ) => {
 
 })
 
-
-
 router.put('/api/users/:id', (req, res, next ) => {
     // async update to remove or add user as manager
-})
+    db.models.User.findOne({
+        where: {
+            id: req.params.id
+        }
+    })
+    .then( (user) =>{
+        user.update({
+            isManager: req.body.isManager,
+            employees: req.body.employees
+        })
+        .then( (user) => {
+            res.send(user)
+        })
+    })
+});
 
 // GET /api/users
-    // GET /api/managers
-    // PUT /api/users/:id
+// GET /api/managers
+// PUT /api/users/:id
 
 
 module.exports = router;

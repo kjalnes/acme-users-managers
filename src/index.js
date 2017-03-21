@@ -4,7 +4,8 @@ import $ from 'jquery';
 import UsersList from './UsersList';
 import ManagersList from './ManagersList';
 
-const state = {
+// USE STATE !!!!!!!!!!!!!!!!!!!!!!!!!
+export const state = {
     users: [],
     selected: null
 };
@@ -14,18 +15,72 @@ const state = {
 
 
 // has to be hooked up in the routes
+
 $.get('/api/users')
     .then( (users) => {
         console.log("users", users)
-        UsersList('#usersList', users);
+        state.users  = users;
+        UsersList('#usersList', state.users);
     });
-
 
 $.get('/api/managers')
     .then( (users) => {
-        ManagersList('#managersList', users)
+        state.users = users;
+        ManagersList('#managersList', state.users)
+    });
+
+
+export const demoteUser = (user) => {
+    const userId = user.id;
+    $.ajax({
+        method: 'PUT',
+        url: `/api/users/${userId}`,
+        contentType: 'application/json',
+        data: JSON.stringify({
+            isManager: false,
+            employees: []
+        })
     })
+    .then( (user) => {
+        state.users.forEach( _user => {
+            if(_user.id === user.id) {
+                _user.isManager = false;
+            }
+        })
 
-console.dir($("select"))
+        UsersList('#usersList', state.users)
+        ManagersList('#managersList', state.users)
+    })
+}
+
+export const promoteUser = (user) => {
+    const userId = user.id;
+    $.ajax({
+        method: 'PUT',
+        url: `/api/users/${userId}`,
+        contentType: 'application/json',
+        data: JSON.stringify({
+            isManager: true,
+            employees: []
+        })
+    })
+    .then( (user) => {
+        state.users.forEach( _user => {
+            if(_user.id === user.id) {
+                _user.isManager = true;
+            }
+        })
+        ManagersList('#managersList', state.users)
+        UsersList('#usersList', state.users)
+
+    })
+}
 
 
+
+
+
+
+
+
+//  ALL AJAX CALLS HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

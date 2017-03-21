@@ -3,6 +3,11 @@ const path = require('path');
 const app = express();
 const db = require('./db');
 const routes = require('./routes')
+const bodyParser = require('body-parser');
+
+// app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+
 
 
 app.use('/vendor', express.static(path.join(__dirname, 'node_modules')));
@@ -17,11 +22,10 @@ app.get('/', (req, res, next) => {
 //all other routes use routes.js file
 app.use('/', routes);
 
-
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
     console.log(`listening on port ${port}`)
-})
+});
 
 db.seed()

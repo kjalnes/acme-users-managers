@@ -1,14 +1,16 @@
+import { state, demoteUser, promoteUser } from "./index"
+
 const UsersList = (containerId, users, selected, onSelect) => {
+    console.log('khsdfdjk')
     const container = $(containerId);
-    const usersCopy = users.slice();
     container.empty();
+
     const div = $("<div class='panel panel-default'></div");
 
     // map through all the users returned from the backend and return a select of options for each user
     const allUsers = users.map( user => {
-        let userIsManager = isManager(users, user.id);
-        let btnClass = userIsManager ? "btn-danger" : "btn-primary";
-        let btnText = userIsManager ? "Demote" : "Promote";
+        let btnClass = user.isManager ? "btn-danger" : "btn-primary";
+        let btnText = user.isManager ? "Demote" : "Promote";
         let options = [`<option val="">none</option>`];
         let otherUsers = users.filter(_user => user.id !== _user.id);
 
@@ -23,7 +25,7 @@ const UsersList = (containerId, users, selected, onSelect) => {
         return `<div class="panel-heading">${user.name}</div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <button class="btn ${btnClass}">${btnText}</button>
+                        <button id="${user.id}" class="btn ${btnClass}">${btnText}</button>
                     </div>
                     <form-group>
                         <label>Managed by:</label>
@@ -36,29 +38,68 @@ const UsersList = (containerId, users, selected, onSelect) => {
 
     div.append(allUsers);
     container.append(div);
+
+
+    $('button').on('click', function() {
+        if(this.innerHTML === 'Demote') {
+            demoteUser(this);
+        } else {
+            promoteUser(this);
+        }
+    });
 }
 
-const getUser = (user, onSelectUser) => {
-    const option = `<option val=${user.id}>${user.name}</option>`;
-    return option;
-}
+
+// const demoteUser = (user) => {
+//     const userId = user.id;
+//     $.ajax({
+//         method: 'PUT',
+//         url: `/api/users/${userId}`,
+//         contentType: 'application/json',
+//         data: JSON.stringify({ isManager: false })
+//     })
+//     .then( (user) => {
+//         state.users.forEach( _user => {
+//             if(_user.id === user.id) {
+//                 _user.isManager = false;
+//             }
+//         })
+
+//         UsersList('#usersList', state.users)
+//         ManagersList('#managersList', state.users)
+//     })
+// }
+
+// const promoteUser = (user) => {
+//     const userId = user.id;
+//     $.ajax({
+//         method: 'PUT',
+//         url: `/api/users/${userId}`,
+//         contentType: 'application/json',
+//         data: JSON.stringify({ isManager: true })
+//     })
+//     .then( (user) => {
+//         state.users.forEach( _user => {
+//             if(_user.id === user.id) {
+//                 _user.isManager = true;
+//             }
+//         })
+//         // ManagersList('#managersList', state.users)
+//         return UsersList('#usersList', state.users)
+
+//     })
+// }
+
+
+
+
+
 
 const onSelectUser = (user) => {
     console.log(user)
 }
 
-const isManager = (users, userId) => {
-    return users.some( user => user.managerId == userId )
-}
 
-
-const findManager = (users, managerId) => {
-    let manager = users.filter( (user) => user.id === managerId)
-
-    if (manager) {
-        return { name: manager[0].name, id: manager[0].id };
-    }
-}
 
 
 

@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -83,6 +83,7 @@ var ManagersList = function ManagersList(containerId, users) {
     var div = $("<div class='panel panel-default'></div");
     var allUsers = users.map(function (user) {
         var employees = void 0;
+
         if (user.employees.length > 0) {
             employees = user.employees.map(function (employee) {
                 return employee.name;
@@ -108,17 +109,20 @@ exports.default = ManagersList;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _index = __webpack_require__(3);
+
 var UsersList = function UsersList(containerId, users, selected, onSelect) {
+    console.log('khsdfdjk');
     var container = $(containerId);
-    var usersCopy = users.slice();
     container.empty();
+
     var div = $("<div class='panel panel-default'></div");
 
     // map through all the users returned from the backend and return a select of options for each user
     var allUsers = users.map(function (user) {
-        var userIsManager = isManager(users, user.id);
-        var btnClass = userIsManager ? "btn-danger" : "btn-primary";
-        var btnText = userIsManager ? "Demote" : "Promote";
+        var btnClass = user.isManager ? "btn-danger" : "btn-primary";
+        var btnText = user.isManager ? "Demote" : "Promote";
         var options = ["<option val=\"\">none</option>"];
         var otherUsers = users.filter(function (_user) {
             return user.id !== _user.id;
@@ -132,36 +136,64 @@ var UsersList = function UsersList(containerId, users, selected, onSelect) {
             options.push(option);
         });
 
-        return "<div class=\"panel-heading\">" + user.name + "</div>\n                <div class=\"panel-body\">\n                    <div class=\"form-group\">\n                        <button class=\"btn " + btnClass + "\">" + btnText + "</button>\n                    </div>\n                    <form-group>\n                        <label>Managed by:</label>\n                        <select class=\"form-control otherUsers\">\n                            " + options + "\n                        </select>\n                    </form-group>\n                </div>";
+        return "<div class=\"panel-heading\">" + user.name + "</div>\n                <div class=\"panel-body\">\n                    <div class=\"form-group\">\n                        <button id=\"" + user.id + "\" class=\"btn " + btnClass + "\">" + btnText + "</button>\n                    </div>\n                    <form-group>\n                        <label>Managed by:</label>\n                        <select class=\"form-control otherUsers\">\n                            " + options + "\n                        </select>\n                    </form-group>\n                </div>";
     }).join('');
 
     div.append(allUsers);
     container.append(div);
+
+    $('button').on('click', function () {
+        if (this.innerHTML === 'Demote') {
+            (0, _index.demoteUser)(this);
+        } else {
+            (0, _index.promoteUser)(this);
+        }
+    });
 };
 
-var getUser = function getUser(user, onSelectUser) {
-    var option = "<option val=" + user.id + ">" + user.name + "</option>";
-    return option;
-};
+// const demoteUser = (user) => {
+//     const userId = user.id;
+//     $.ajax({
+//         method: 'PUT',
+//         url: `/api/users/${userId}`,
+//         contentType: 'application/json',
+//         data: JSON.stringify({ isManager: false })
+//     })
+//     .then( (user) => {
+//         state.users.forEach( _user => {
+//             if(_user.id === user.id) {
+//                 _user.isManager = false;
+//             }
+//         })
+
+//         UsersList('#usersList', state.users)
+//         ManagersList('#managersList', state.users)
+//     })
+// }
+
+// const promoteUser = (user) => {
+//     const userId = user.id;
+//     $.ajax({
+//         method: 'PUT',
+//         url: `/api/users/${userId}`,
+//         contentType: 'application/json',
+//         data: JSON.stringify({ isManager: true })
+//     })
+//     .then( (user) => {
+//         state.users.forEach( _user => {
+//             if(_user.id === user.id) {
+//                 _user.isManager = true;
+//             }
+//         })
+//         // ManagersList('#managersList', state.users)
+//         return UsersList('#usersList', state.users)
+
+//     })
+// }
+
 
 var onSelectUser = function onSelectUser(user) {
     console.log(user);
-};
-
-var isManager = function isManager(users, userId) {
-    return users.some(function (user) {
-        return user.managerId == userId;
-    });
-};
-
-var findManager = function findManager(users, managerId) {
-    var manager = users.filter(function (user) {
-        return user.id === managerId;
-    });
-
-    if (manager) {
-        return { name: manager[0].name, id: manager[0].id };
-    }
 };
 
 exports.default = UsersList;
@@ -204,6 +236,105 @@ exports.default = Foo;
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.promoteUser = exports.demoteUser = exports.state = undefined;
+
+var _foo = __webpack_require__(2);
+
+var _foo2 = _interopRequireDefault(_foo);
+
+var _jquery = __webpack_require__(4);
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+var _UsersList = __webpack_require__(1);
+
+var _UsersList2 = _interopRequireDefault(_UsersList);
+
+var _ManagersList = __webpack_require__(0);
+
+var _ManagersList2 = _interopRequireDefault(_ManagersList);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// USE STATE !!!!!!!!!!!!!!!!!!!!!!!!!
+// entry point for webpack
+var state = exports.state = {
+    users: [],
+    selected: null
+};
+
+// all async ajax calls shoudl happen here
+// render data using imported UsersList and ManagersList
+
+
+// has to be hooked up in the routes
+
+_jquery2.default.get('/api/users').then(function (users) {
+    console.log("users", users);
+    state.users = users;
+    (0, _UsersList2.default)('#usersList', state.users);
+});
+
+_jquery2.default.get('/api/managers').then(function (users) {
+    state.users = users;
+    (0, _ManagersList2.default)('#managersList', state.users);
+});
+
+var demoteUser = exports.demoteUser = function demoteUser(user) {
+    var userId = user.id;
+    _jquery2.default.ajax({
+        method: 'PUT',
+        url: '/api/users/' + userId,
+        contentType: 'application/json',
+        data: JSON.stringify({
+            isManager: false,
+            employees: []
+        })
+    }).then(function (user) {
+        state.users.forEach(function (_user) {
+            if (_user.id === user.id) {
+                _user.isManager = false;
+            }
+        });
+
+        (0, _UsersList2.default)('#usersList', state.users);
+        (0, _ManagersList2.default)('#managersList', state.users);
+    });
+};
+
+var promoteUser = exports.promoteUser = function promoteUser(user) {
+    var userId = user.id;
+    _jquery2.default.ajax({
+        method: 'PUT',
+        url: '/api/users/' + userId,
+        contentType: 'application/json',
+        data: JSON.stringify({
+            isManager: true,
+            employees: []
+        })
+    }).then(function (user) {
+        state.users.forEach(function (_user) {
+            if (_user.id === user.id) {
+                _user.isManager = true;
+            }
+        });
+        (0, _ManagersList2.default)('#managersList', state.users);
+        (0, _UsersList2.default)('#usersList', state.users);
+    });
+};
+
+//  ALL AJAX CALLS HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -10452,53 +10583,6 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _foo = __webpack_require__(2);
-
-var _foo2 = _interopRequireDefault(_foo);
-
-var _jquery = __webpack_require__(3);
-
-var _jquery2 = _interopRequireDefault(_jquery);
-
-var _UsersList = __webpack_require__(1);
-
-var _UsersList2 = _interopRequireDefault(_UsersList);
-
-var _ManagersList = __webpack_require__(0);
-
-var _ManagersList2 = _interopRequireDefault(_ManagersList);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// entry point for webpack
-var state = {
-    users: [],
-    selected: null
-};
-
-// all async ajax calls shoudl happen here
-// render data using imported UsersList and ManagersList
-
-
-// has to be hooked up in the routes
-_jquery2.default.get('/api/users').then(function (users) {
-    console.log("users", users);
-    (0, _UsersList2.default)('#usersList', users);
-});
-
-_jquery2.default.get('/api/managers').then(function (users) {
-    (0, _ManagersList2.default)('#managersList', users);
-});
-
-console.dir((0, _jquery2.default)("select"));
 
 /***/ })
 /******/ ]);

@@ -15,8 +15,8 @@ const seed = () => {
     return sync()
     .then( () => {
         Promise.all([
-            User.create({name: "Moon"}),
-            User.create({name: "Leo", managerId: 1}),
+            User.create({name: "Moon", isManager: true }),
+            User.create({name: "Leo", isManager: true,  managerId: 1}),
             User.create({name: "Nanc", managerId: 1}),
             User.create({name: "Corn", managerId: 2})
         ])
