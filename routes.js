@@ -1,65 +1,48 @@
 const router = require('express').Router();
 const path = require('path');
 const db = require('./db')
-
+const User = db.models.User;
 
 router.get('/api/users', (req, res, next ) => {
-    db.models.User.getUsers()
+    User.getUsers()
     .then( (users) => {
         res.send(users)
     })
-})
+});
 
 router.get('/api/managers', (req, res, next ) => {
-    db.models.User.getManagersAndEmployees()
-    .then( (managersAndEmpl) => {
-        res.send(managersAndEmpl)
+    User.getManagersAndEmployees()
+    .then( (managers) => {
+        res.send(managers)
     })
-})
+});
 
-
-// promote, demote, add user to manager, remove user from manager, change user's manager
+// promote, demote, add user / remove user from manager, change user's manager
 router.put('/api/users/:id', (req, res, next ) => {
     const id = req.params.id;
 
-    // 1. find the user and demote or promote
-    // 2. if demote find all of users employees and set managerId to null
-
     // if requestes is promote demote
     if(req.body.promoteOrDemote) {
-        db.models.User.findOne({
-            where: {
-                id: req.params.id
-            }
-        })
+        User.getUser(id)
         .then(user => {
-            const isManager = user.isManager; // true or false
-            return user.update({
-                isManager: !isManager
-            })
+            return user.changeManagerRole()
         })
         .then( (user) => {
-            // if user was demoted:
             if(!user.isManager)  {
-                db.models.User.update(
-                    { managerId: null },
-                    { where: { managerId: id }}
-                )
+                return User.removeManagerIds(id)
             }
         })
         .then( () => res.sendStatus(201))
     }
 
-    // if reequest is update relationships
-    if(req.body.managerId) {
-        let managerId = req.body.managerId === "none" ? null : req.body.managerId;
-        db.models.User.update(
-            { managerId: managerId },
-            { where: { id : id }}
-        )
+    // if request is update relationships
+    if(req.body.managerId || req.body.managerId === null) {
+        User.getUser(id)
+        .then( user => {
+            return user.updateUsersManager(req.body.managerId)
+        })
         .then( () => res.sendStatus(201))
     }
-
 });
 
 module.exports = router;

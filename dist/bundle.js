@@ -111,26 +111,20 @@ Object.defineProperty(exports, "__esModule", {
 var _index = __webpack_require__(2);
 
 var UsersList = function UsersList(containerId, users) {
-    console.log('khsdfdjk');
     var container = $(containerId);
+    var div = $("<div class='panel panel-default'></div");
     container.empty();
 
-    var div = $("<div class='panel panel-default'></div");
-
-    // map through all the users returned from the backend and return a select of options for each user
     var allUsers = users.map(function (user) {
         var btnClass = user.isManager ? "btn-danger" : "btn-primary";
         var btnText = user.isManager ? "Demote" : "Promote";
         var options = ["<option val=\"\">none</option>"];
-        var otherUsers = users.filter(function (_user) {
-            return user.id !== _user.id;
-        });
 
-        otherUsers.forEach(function (otherUser) {
-            if (otherUser.isManager) {
-                var option = "<option val=\"" + otherUser.id + "\">" + otherUser.name + "</option>";
-                if (otherUser.id === user.managerId) {
-                    option = "<option selected val=\"" + otherUser.id + "\">" + otherUser.name + "</option>";
+        users.forEach(function (_user) {
+            if (_user.isManager && _user.id !== user.id) {
+                var option = "<option val=\"" + _user.id + "\">" + _user.name + "</option>";
+                if (_user.id === user.managerId) {
+                    option = "<option selected val=\"" + _user.id + "\">" + _user.name + "</option>";
                 }
                 options.push(option);
             }
@@ -143,18 +137,13 @@ var UsersList = function UsersList(containerId, users) {
     container.append(div);
 
     $('button').on('click', function () {
-        var id = this.id;
-        (0, _index.promoteOrDemoteUser)(id);
+        (0, _index.promoteOrDemoteUser)(this.id);
     });
 
     $('select').on('change', function () {
         var userId = this.id.slice(7);
         var newManagerId = $(this).find(':selected').attr('val');
-
         (0, _index.changeManager)(userId, newManagerId);
-        // change user's manager
-        // change old managers data
-        // change new managers data
     });
 };
 
@@ -189,19 +178,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var state = {
     users: [],
-    managers: [],
-    selected: null
+    managers: []
 }; // entry point for webpack
 
-
-function getData() {
-    Promise.all([getUsers(), getManagers()]).then(function (result) {
-        state.users = result[0];
-        state.managers = result[1];
-        render();
-    });
-}
-getData();
 
 function getUsers() {
     return _jquery2.default.get('/api/users');
@@ -211,33 +190,39 @@ function getManagers() {
     return _jquery2.default.get('/api/managers');
 }
 
-function changeManager(id, managerId) {
-    var newManagerId = managerId ? managerId : 'none';
-    _jquery2.default.ajax({
-        method: 'PUT',
-        url: '/api/users/' + id,
-        data: JSON.stringify({ managerId: newManagerId }),
-        contentType: "application/json"
-    }).then(function () {
-        getData();
+function render() {
+    (0, _UsersList2.default)('#usersList', state.users);
+    (0, _ManagersList2.default)('#managersList', state.managers);
+}
+
+function getData() {
+    Promise.all([getUsers(), getManagers()]).then(function (result) {
+        state.users = result[0];
+        state.managers = result[1];
+        render();
     });
 }
 
-// export to make available in UsersList.js
+getData();
+
+function changeManager(id, managerId) {
+    var newManagerId = managerId !== "" ? managerId : null;
+    _jquery2.default.ajax({
+        method: 'PUT',
+        url: '/api/users/' + id,
+        contentType: "application/json",
+        data: JSON.stringify({ managerId: newManagerId })
+
+    }).then(getData);
+}
+
 function promoteOrDemoteUser(id) {
     _jquery2.default.ajax({
         method: 'PUT',
         url: '/api/users/' + id,
         contentType: 'application/json',
         data: JSON.stringify({ promoteOrDemote: true })
-    }).then(function () {
-        getData();
-    });
-}
-
-function render() {
-    (0, _UsersList2.default)('#usersList', state.users);
-    (0, _ManagersList2.default)('#managersList', state.managers);
+    }).then(getData);
 }
 
 /***/ }),

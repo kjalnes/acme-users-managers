@@ -8,21 +8,18 @@ const User = _conn.define('user', {
     }
 }, {
     classMethods: {
+        getUser: function(id) {
+            return this.findOne({
+                where: {
+                    id: id
+                }
+            })
+        },
         getUsers: function() {
             return this.findAll({
                 order: [
                     ['name', 'DESC']
                 ]
-            })
-        },
-        getManagers: function() {
-            return this.findAll({
-                order: [
-                    ['name', 'DESC']
-                ],
-                where: {
-                    isManager: true
-                }
             })
         },
         getManagersAndEmployees: function() {
@@ -35,6 +32,25 @@ const User = _conn.define('user', {
                 },
                 include: { model: this, as: 'employees' }
             });
+        },
+        removeManagerIds: function(id) {
+            return this.update(
+                { managerId: null },
+                { where: { managerId: id }}
+            )
+        }
+    },
+    instanceMethods: {
+        changeManagerRole: function() {
+            const isManager = this.isManager; // true or false
+            return this.update({
+                isManager: !isManager
+            })
+        },
+        updateUsersManager: function(managerId) {
+            return this.update(
+                { managerId: managerId }
+            )
         }
     }
 });
